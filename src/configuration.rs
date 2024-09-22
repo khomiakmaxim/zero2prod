@@ -24,6 +24,7 @@ impl DatabaseSettings {
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     // Initialize our configuration reader
+    // TODO: Try to parse DatabaseSettings from the environment variable
     let settings = config::Config::builder()
         // Add configuration values from a file named `configuration.yaml`
         .add_source(config::File::new(

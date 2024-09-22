@@ -66,8 +66,7 @@ fi
 DATABASE_URL=postgres://${APP_USER}:${APP_USER_PWD}@localhost:${DB_PORT}/${APP_DB_NAME}
 export DATABASE_URL
 
-# TODO: Fix problem with not finding sqlx
-/home/khomikmaxim/.cargo/bin/sqlx database create
-/home/khomikmaxim/.cargo/bin/sqlx migrate run
+sqlx database create
+sqlx migrate run
 
 >&2 echo "Postgres has been migrated, ready to go!"
