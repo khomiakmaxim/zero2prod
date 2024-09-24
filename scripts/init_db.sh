@@ -2,13 +2,18 @@
 set -x
 set -eo pipefail
 
-if [ -x "$(command -v sqlx-cli)" ]; then
-  echo >&2 "Error: sqlx is not installed."
-  echo >&2 "Use:"
-  echo >&2 "    cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres"
-  echo >&2 "to install it."
-  exit 1
-fi
+cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres
+
+# TODO: think of how to manage missed\installed dependecies while runnign `init_db.sh` 
+# if [ -x "$(command -v sqlx)" ]; then
+#   # echo >&2 "Error: sqlx is not installed."
+#   # echo >&2 "Use:"
+#   # echo >&2 "    cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres"
+#   # echo >&2 "to install it."
+#   # exit 1
+
+#   cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres
+# fi
 
 # Check if a custom parameter has been set, otherwise use default values
 DB_PORT="${DB_PORT:=5432}"
@@ -51,13 +56,16 @@ then
     sleep 1 
   done
   
+# TODO: Think of what `-t` (`tty`) was actually doing in the beleow
+# `docker exec` command
+
   # Create the application user
   CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
-  docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${CREATE_QUERY}"
+  docker exec -i "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${CREATE_QUERY}"
   
   # Grant create db privileges to the app user
   GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
-  docker exec -it "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${GRANT_QUERY}"
+  docker exec -i "${CONTAINER_NAME}" psql -U "${SUPERUSER}" -c "${GRANT_QUERY}"
 fi
 
 >&2 echo "Postgres is up and running on port ${DB_PORT} - running migrations now!"
