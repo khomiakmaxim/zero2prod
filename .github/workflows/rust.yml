@@ -16,7 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
+    - name: Run scripts
+      run: ./scripts/init_db.sh
+    - name: Check
+      run: cargo check --verbose
+    - name: Run `clippy`
+      run: cargo clippy --verbose
     - name: Run tests
       run: cargo test --verbose
