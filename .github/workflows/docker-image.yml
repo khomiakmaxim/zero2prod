@@ -17,4 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Run the `init_db` script
-      run: ./scripts/init_db.sh
+    - run: |
+    ./scripts/init_db.sh
+    cargo check
