@@ -27,7 +27,15 @@ async fn main() -> Result<(), std::io::Error> {
         .await
         .expect("Failed to connect to Postgres");
 
-    let address = format!("127.0.0.1:{}", application_port);
+    let address = format!("{}:{}", database.host, application_port);
+    // CHECK: Why does `bind()` depend on an entire address and not just a port?
+    // Can we use some other address except for localhost\127.0.0.1?
+    // Maybe we can/ Something like 127.0.0.(2,3,4,x)
+    //
+    // UPD: Yes, we can use not only 127.0.0.1 for hosting a local service.
+    // In fact, I managed to do so with 127.0.0.2 and everything worked as planned when
+    // issuing requests via `curl`, yet 2 of my browsers returned `unnable to connect`.
+    // It seems to be a hardcoded browsers limitation for some reason.
     let listener = TcpListener::bind(address).expect("Failed to bind address");
 
     run(listener, connection_pool)?.await?;

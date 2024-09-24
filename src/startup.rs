@@ -1,5 +1,6 @@
-use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
+use actix_web::{dev::Server, web, App, HttpServer};
 use sqlx::PgPool;
+use tracing_actix_web::TracingLogger;
 use std::net::TcpListener;
 
 use crate::routes;
@@ -11,7 +12,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
     // in an endless loop
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
+            .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::subscribe))
             // `app_data` with cloned dp_pool allows to use Form<DbPool> in all existing handlers
