@@ -23,7 +23,7 @@ async fn main() -> Result<(), std::io::Error> {
     // `actix-web` creates a worker per CPU core. Workers utilize connections
     // which are taken from the connection pool instead of creating a connection per
     // request as an optimization technique
-    let connection_pool = PgPool::connect(&database.connection_string().expose_secret())
+    let connection_pool = PgPool::connect(database.connection_string().expose_secret())
         .await
         .expect("Failed to connect to Postgres");
 
