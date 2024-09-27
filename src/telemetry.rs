@@ -17,7 +17,7 @@ where
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
 
-    // TODO: Can I play around with types here and write it a 
+    // TODO: Can I play around with types here and write it a
     // bit nicer?
 
     // Bunyan log includes more information(for example host, pid, request-id from `tracing-actix-web`)
@@ -34,7 +34,7 @@ where
             tracing_subscriber::fmt()
                 .with_env_filter(env_filter)
                 .with_writer(sink)
-                .finish()
+                .finish(),
         )
     }
 }

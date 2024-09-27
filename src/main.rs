@@ -16,18 +16,17 @@ async fn main() -> Result<(), std::io::Error> {
     // Configuration is retrieved from `configuration.yaml` file
     let configuration = get_configuration().expect("Failed to read configuration");
     let Settings {
-        application_port,
+        application,
         database,
     } = configuration;
 
     // `actix-web` creates a worker per CPU core. Workers utilize connections
     // which are taken from the connection pool instead of creating a connection per
     // request as an optimization technique
-    let connection_pool = PgPool::connect(database.connection_string().expose_secret())
-        .await
+    let connection_pool = PgPool::connect_lazy(database.connection_string().expose_secret())
         .expect("Failed to connect to Postgres");
 
-    let address = format!("{}:{}", database.host, application_port);
+    let address = format!("{}:{}", application.host, application.port);
     // CHECK: Why does `bind()` depend on an entire address and not just a port?
     // Can we use some other address except for localhost\127.0.0.1?
     // Maybe we can/ Something like 127.0.0.(2,3,4,x)
