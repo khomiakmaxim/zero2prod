@@ -1,4 +1,3 @@
-use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
@@ -23,9 +22,8 @@ async fn main() -> Result<(), std::io::Error> {
     // `actix-web` creates a worker per CPU core. Workers utilize connections
     // which are taken from the connection pool instead of creating a connection per
     // request as an optimization technique
-    let connection_pool = PgPool::connect_lazy(database.connection_string().expose_secret())
-        .expect("Failed to connect to Postgres");
-
+    
+    let connection_pool = PgPool::connect_lazy_with(database.connect_options());
     let address = format!("{}:{}", application.host, application.port);
     // CHECK: Why does `bind()` depend on an entire address and not just a port?
     // Can we use some other address except for localhost\127.0.0.1?
