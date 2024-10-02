@@ -49,26 +49,26 @@ async fn subscribe_returns_a_200_when_fields_are_present_but_empty() {
     let app = spawn_app().await;
     let client = reqwest::Client::new();
     let test_cases = vec![
-        ("name1=&email=ursula_le_guin%40gmail.com", "empty name"),
-        ("name=Ursula&email=1", "empty email"),
+        ("name=&email=ursula_le_guin%40gmail.com", "empty name"),
+        ("name=Ursula&email=", "empty email"),
         ("name=Ursula&email=definitely-not-an-email", "invalid email"),
     ];
 
-    for (body, _description) in test_cases {
-        let _response = client
+    for (body, description) in test_cases {
+        let response = client
             .post(format!("{}/subscriptions", &app.address))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(body)
             .send()
-            .await // incomplete message error
+            .await
             .expect("Failed to execute request.");
 
-        // assert_eq!(
-        //     400,
-        //     response.status().as_u16(),
-        //     "The API didn't return a 400 Bad Reqeust when the payload was {}",
-        //     description
-        // );
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API didn't return a 400 Bad Reqeust when the payload was {}",
+            description
+        );
     }
 }
 
