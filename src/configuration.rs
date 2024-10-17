@@ -50,7 +50,7 @@ impl DatabaseSettings {
 #[derive(Deserialize, Clone)]
 pub struct EmailClientSettings {
     pub sender_email: String,
-    pub smtp_password: Option<Secret<String>>,
+    pub smtp_password: Secret<String>,
 }
 
 impl EmailClientSettings {
