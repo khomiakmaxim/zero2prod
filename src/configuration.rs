@@ -1,12 +1,16 @@
 use secrecy::{ExposeSecret, Secret};
+use serde::Deserialize;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 
-#[derive(serde::Deserialize)]
+use crate::domain::SubscriberEmail;
+
+#[derive(Deserialize)]
 pub struct Settings {
     // CHECK: I assume that this can be retrieved from DATABASE_URL environment variable
     // and not being duplicated here
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub email_client: EmailClientSettings,
 }
 
 #[derive(serde::Deserialize)]
@@ -15,7 +19,7 @@ pub struct ApplicationSettings {
     pub host: String,
 }
 
-#[derive(serde::Deserialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
     pub password: Secret<String>,
@@ -43,6 +47,18 @@ impl DatabaseSettings {
     }
 }
 
+#[derive(Deserialize, Clone)]
+pub struct EmailClientSettings {
+    pub sender_email: String,
+    pub smtp_password: Secret<String>,
+}
+
+impl EmailClientSettings {
+    pub fn sender(&self) -> Result<SubscriberEmail, String> {
+        SubscriberEmail::parse(self.sender_email.clone())
+    }
+}
+
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     // CAUTION: You must run from src folder in order for this to work
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
@@ -60,20 +76,13 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .add_source(config::File::from(
             configuring_directory.join(environment_filename),
         ))
+        .add_source(config::File::from(
+            configuring_directory.join("secrets.yaml"),
+        ))
         .build()?;
 
-    // Initialize our configuration reader
-    // TODO: Try to parse DatabaseSettings from the environment variable
-    // let settings = config::Config::builder()
-    //     // Add configuration values from a file named `configuration.yaml`
-    //     .add_source(config::File::new(
-    //         "configuration.yaml",
-    //         config::FileFormat::Yaml,
-    //     ))
-    // .build()?;
-    // Try to convert the configuration values it read into
-    // our Settings type
-    settings.try_deserialize::<Settings>()
+    let settings = settings.try_deserialize::<Settings>()?;
+    Ok(settings)
 }
 
 /// The possible runtime environment for the application.

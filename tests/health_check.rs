@@ -5,6 +5,7 @@ use std::net::TcpListener;
 
 use zero2prod::{
     configuration::{get_configuration, DatabaseSettings, Settings},
+    email_client::EmailClient,
     startup::run,
     telemetry::{get_subscriber, init_subscriber},
 };
@@ -140,12 +141,19 @@ async fn spawn_app() -> TestApp {
         .port();
 
     let configuration = get_configuration().expect("Failed to get configuration");
-    let Settings { mut database, .. } = configuration;
+    let Settings {
+        mut database,
+        application: _,
+        email_client,
+    } = configuration;
     database.database_name = uuid::Uuid::new_v4().to_string();
 
     let db_pool = configure_database(&database).await;
+    let sender_email = email_client.sender().expect("Invalid sender email address");
 
-    let server = run(listener, db_pool.clone()).expect("Failed to spawn app");
+    let email_client = EmailClient::new(sender_email, email_client.smtp_password);
+
+    let server = run(listener, db_pool.clone(), email_client).expect("Failed to spawn app");
     tokio::task::spawn(server);
     let address = format!("http://127.0.0.1:{}", port);
 

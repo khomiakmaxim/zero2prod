@@ -3,6 +3,7 @@ use std::net::TcpListener;
 
 use zero2prod::{
     configuration::{get_configuration, Settings},
+    email_client::EmailClient,
     startup::run,
     telemetry::{get_subscriber, init_subscriber},
 };
@@ -17,24 +18,21 @@ async fn main() -> Result<(), std::io::Error> {
     let Settings {
         application,
         database,
+        email_client,
     } = configuration;
 
     // `actix-web` creates a worker per CPU core. Workers utilize connections
     // which are taken from the connection pool instead of creating a connection per
-    // request as an optimization technique
-
+    // request, as an optimization technique
     let connection_pool = PgPool::connect_lazy_with(database.connect_options());
     let address = format!("{}:{}", application.host, application.port);
-    // CHECK: Why does `bind()` depend on an entire address and not just a port?
-    // Can we use some other address except for localhost\127.0.0.1?
-    // Maybe we can/ Something like 127.0.0.(2,3,4,x)
-    //
-    // UPD: Yes, we can use not only 127.0.0.1 for hosting a local service.
-    // In fact, I managed to do so with 127.0.0.2 and everything worked as planned when
-    // issuing requests via `curl`, yet 2 of my browsers returned `unnable to connect`.
-    // It seems to be a hardcoded browsers limitation for some reason.
     let listener = TcpListener::bind(address).expect("Failed to bind address");
 
-    run(listener, connection_pool)?.await?;
+    let sender_email = email_client.sender().expect("Invalid sender email address");
+
+    // WARN: `email_client` is shadowed
+    let email_client = EmailClient::new(sender_email, email_client.smtp_password);
+
+    run(listener, connection_pool, email_client)?.await?;
     Ok(())
 }

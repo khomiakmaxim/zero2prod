@@ -45,12 +45,6 @@ mod tests {
         SubscriberEmail::parse(valid_email.0).is_ok()
     }
 
-    // #[test]
-    // fn valid_emails_are_parsed_successfully() {
-    //     let email = SafeEmail().fake();
-    //     assert_ok!(SubscriberEmail::parse(email));
-    // }
-
     #[test]
     fn empty_string_is_rejected() {
         let email = "".to_string();
