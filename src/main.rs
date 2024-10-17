@@ -31,6 +31,9 @@ async fn main() -> Result<(), std::io::Error> {
     let sender_email = email_client.sender().expect("Invalid sender email address");
 
     // WARN: `email_client` is shadowed
+
+    // йому все ж потрібен якийсь пароль, щоб запускати той тест
+
     let email_client = EmailClient::new(sender_email, email_client.smtp_password);
 
     run(listener, connection_pool, email_client)?.await?;

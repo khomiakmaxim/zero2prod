@@ -7,11 +7,11 @@ use secrecy::{ExposeSecret, Secret};
 
 pub struct EmailClient {
     sender: SubscriberEmail,
-    smtp_password: Secret<String>,
+    smtp_password: Option<Secret<String>>,
 }
 
 impl EmailClient {
-    pub fn new(sender: SubscriberEmail, smtp_password: Secret<String>) -> Self {
+    pub fn new(sender: SubscriberEmail, smtp_password: Option<Secret<String>>) -> Self {
         Self {
             sender,
             smtp_password,
