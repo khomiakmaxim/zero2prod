@@ -51,6 +51,7 @@ impl DatabaseSettings {
 pub struct EmailClientSettings {
     pub sender_email: String,
     pub smtp_password: Secret<String>,
+    pub authorization_token: Secret<String>,
 }
 
 impl EmailClientSettings {

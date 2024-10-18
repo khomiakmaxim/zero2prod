@@ -1,6 +1,7 @@
+use quickcheck::Arbitrary;
 use validator::ValidateEmail;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SubscriberEmail(String);
 
 impl SubscriberEmail {
@@ -16,6 +17,16 @@ impl SubscriberEmail {
 impl AsRef<str> for SubscriberEmail {
     fn as_ref(&self) -> &str {
         &self.0
+    }
+}
+
+// NB: Here I implemented a foreign trait(From) for a foreign type(String)
+// and yet, rustc allows me to do so.
+// Still, that makes sense, since I am the one who created [`SubscriberEmail`] type,
+// which is the one [`From`] is monomorphised with
+impl From<SubscriberEmail> for String {
+    fn from(value: SubscriberEmail) -> Self {
+        value.0
     }
 }
 

@@ -151,7 +151,7 @@ async fn spawn_app() -> TestApp {
     let db_pool = configure_database(&database).await;
     let sender_email = email_client.sender().expect("Invalid sender email address");
 
-    let email_client = EmailClient::new(sender_email, email_client.smtp_password);
+    let email_client = EmailClient::new(sender_email, email_client.smtp_password, email_client.authorization_token);
 
     let server = run(listener, db_pool.clone(), email_client).expect("Failed to spawn app");
     tokio::task::spawn(server);

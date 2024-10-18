@@ -10,3 +10,4 @@ database:
   database_name: "newsletter"
 email_client:
   sender_email: "test@gmail.com"
+  authorization_token: "secret-token"

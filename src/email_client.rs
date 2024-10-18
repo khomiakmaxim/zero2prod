@@ -1,52 +1,69 @@
 use crate::domain::SubscriberEmail;
 use lettre::{
-    message::header::ContentType, transport::smtp::authentication::Credentials, Message,
-    SmtpTransport, Transport,
+    message::{header::ContentType, Mailbox},
+    transport::smtp::{authentication::Credentials, commands::Mail},
+    Message, SmtpTransport, Transport,
 };
 use secrecy::{ExposeSecret, Secret};
 
 pub struct EmailClient {
     sender: SubscriberEmail,
     smtp_password: Secret<String>,
+    authorization_token: Secret<String>,
 }
 
 impl EmailClient {
-    pub fn new(sender: SubscriberEmail, smtp_password: Secret<String>) -> Self {
+    pub fn new(sender: SubscriberEmail, smtp_password: Secret<String>, authorization_token: Secret<String>) -> Self {
         Self {
             sender,
             smtp_password,
+            authorization_token,
         }
     }
 
-    pub async fn send_email() -> Result<(), String> {
-        todo!()
-        // let email = Message::builder()
-        //     .from("NoBody <nobody@domain.tld>".parse().unwrap())
-        //     .reply_to("Yuin <yuin@domain.tld>".parse().unwrap())
-        //     .to("Hei <khomiakmaxim@gmail.com>".parse().unwrap())
-        //     .subject("Happy new year")
-        //     .header(ContentType::TEXT_PLAIN)
-        //     .body(String::from("Be happy!"))
-        //     .unwrap();
+    pub async fn send_email(
+        &self,
+        recipient: SubscriberEmail,
+        subject: &str,
+        html_content: &str,
+        text_content: &str,
+    ) -> Result<(), String> {
+        // CHECK: Is this a correct usage of `map_err`?
+        let sender: Mailbox = format!("Zero2Prod <{}>", self.sender.as_ref())
+            .parse()
+            .map_err(|_| "Invalid sender email".to_owned())?;
+        let recipient: Mailbox = format!(" Ma'facka <{}>", String::from(recipient)).parse()
+            .unwrap(); // Unwrap is safe here, since it relies on type safe recipient
 
-        // let creds = Credentials::new(
-        //     "khomiakmaxim@gmail.com".to_owned(),
-        //     smtp_password.expose_secret().to_owned(),
-        // );
+        let content = format!("{} — {}", html_content, self.authorization_token.expose_secret());
+
+        let email = Message::builder()
+            .from(sender.clone())
+            .reply_to(sender)
+            .to(recipient)
+            .subject(subject)
+            .header(ContentType::TEXT_PLAIN)
+            .body(content)
+            .unwrap();
+
+        let creds = Credentials::new(
+            self.sender.clone().into(),
+            self.smtp_password.expose_secret().to_owned(),
+        );
 
         // // Open a remote connection to gmail
-        // let mailer = SmtpTransport::relay("smtp.gmail.com")
-        //     .unwrap()
-        //     .credentials(creds)
-        //     .build();
+        let mailer = SmtpTransport::relay("smtp.gmail.com")
+            .unwrap()
+            .credentials(creds)
+            .build();
 
-        // // Send the email
-        // match mailer.send(&email) {
-        //     Ok(_) => println!("Email sent successfully!"),
-        //     Err(e) => panic!("Could not send email: {e:?}"),
-        // }
+        // Send the email
+        match mailer.send(&email) {
+            Ok(_) => println!("Email sent successfully!"),
+            Err(e) => panic!("Could not send email: {e:?}"),
+        }
 
-        // Ok(())
+        Ok(())
     }
 }
 
